@@ -1,0 +1,2 @@
+include ':app', ':multipleimageselectN'
+project(':multipleimageselectN').projectDir = new File('multipleimageselect')
