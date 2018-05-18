@@ -2,12 +2,14 @@ package com.jack.imagepickorcapture;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -40,6 +42,8 @@ import com.darsh.multipleimageselect.models.Image;
 import com.jack.imagepickorcapture.adapter.PhotoUploadGalleryAdapter;
 import com.jack.imagepickorcapture.adapter.PhotoUploadViewPagerAdapter;
 import com.jack.imagepickorcapture.helper.MarshmellowUtility;
+import com.jack.imagepickorcapture.helper.PhotoUploadingTaskNew;
+import com.jack.imagepickorcapture.helper.PreferenceConnector;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
@@ -66,7 +70,7 @@ public class PhotoUpload extends AppCompatActivity {
     private ArrayList<Image> mSelectedImages;
     private GridView gridView;
     private NotificationManager mNotifyManager;
-    private Builder mBuilder;
+    private NotificationCompat.Builder mBuilder;
     private int id = 12424;
     private ViewPager viewPager;
     private PhotoUploadViewPagerAdapter pagerAdapterCaption;
@@ -84,7 +88,8 @@ public class PhotoUpload extends AppCompatActivity {
         this.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
 
         SetupToolBar();
-        GetIntentValues();
+        eventname = "Meet and Greet Shirley Setia";
+        event_id = "176229133007306";
 
         viewPager = (ViewPager) findViewById(R.id.photo_upload_pager);
         gridView = (GridView) findViewById(R.id.grid);
@@ -143,14 +148,6 @@ public class PhotoUpload extends AppCompatActivity {
         }
     }
 
-    private void GetIntentValues() {
-        if (getIntent().getStringExtra("event_name") != null)
-            eventname = getIntent().getStringExtra("event_name");
-        event_id = getIntent().getStringExtra("event_id");
-        String view_name = getIntent().getStringExtra("view_name");
-
-    }
-
     public PendingIntent getPendingAction() {
         Intent yesReceive = new Intent();
         yesReceive.setAction("YES");
@@ -158,10 +155,8 @@ public class PhotoUpload extends AppCompatActivity {
     }
 
     private void CallUploadListner() {
-        /*if (!PreferenceConnector.readBoolean(PhotoUpload.this,
-                            "isAsyncTaskRunning", false)) {*/
-        /*new PhotoUploadingTaskNew(getApplicationContext(), event_id,
-                getEmail(), mSelectedImages, new OnPhotoUpload() {
+        new PhotoUploadingTaskNew(event_id,
+                "jatinmandanka@gmail.com", mSelectedImages, new OnPhotoUpload() {
 
             @Override
             public void onUploadStart(String msg,
@@ -190,41 +185,26 @@ public class PhotoUpload extends AppCompatActivity {
             @Override
             public void onCompleate(boolean iserror, String errormsg) {
                 mBuilder.setContentTitle("Photo upload complete").setContentText("Tap for view photos.");
-                // Removes the progress bar
-                Intent intent = new Intent(getApplicationContext(), GalleryListView.class);
-                intent.putExtra("requested_position", 0);
-                intent.putExtra("event_id", event_id);
-                if (eventname != null) {
-                    intent.putExtra("eventname", eventname);
-                } else {
-                    intent.putExtra("eventname", "Event");
-                }
-                intent.putExtra("isFromNotification", true);
-                PendingIntent imtent = PendingIntent.getActivity(getApplicationContext(), 0, intent, PendingIntent.FLAG_ONE_SHOT);
+                try {
+                    Intent i = new Intent(Intent.ACTION_VIEW);
+                    i.setData(Uri.parse("https://allevents.in/e/" + event_id));
 
-                mBuilder.setProgress(0, 0, false).setContentIntent(imtent).setAutoCancel(true);
-                mNotifyManager.notify(id, mBuilder.build());
-                if (PhotoUpload.this != null) PhotoUpload.this.finish();
+                    PendingIntent imtent = PendingIntent.getActivity(getApplicationContext(), 0, i, PendingIntent.FLAG_ONE_SHOT);
+
+                    mBuilder.setProgress(0, 0, false).setContentIntent(imtent).setAutoCancel(true);
+                    mNotifyManager.notify(id, mBuilder.build());
+                    PhotoUpload.this.finish();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
 
             @Override
             public void onCancleSelect(int position) {
-							*//*if (view_name
-									.equals("DetailSlidePageFragment")) {
-								System.out
-										.println("detailfragment cancel called");
-								DetailSlidePageFragment.callback
-										.onCancleSelect(position);
-							} else if (view_name
-									.equals("GalleryListView")) {
-								System.out
-										.println("gallerylistview cancel called");
-								GalleryListView.callback
-										.onCancleSelect(position);
-							}*//*
+                System.out
+                        .println("=====================gallerylistview cancel called  " + position);
             }
-        });*/
-        //}
+        });
     }
 
    /* private void showRemoveImageDialog(final int position) {
@@ -274,7 +254,8 @@ public class PhotoUpload extends AppCompatActivity {
 
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
         switch (requestCode) {
             case MarshmellowUtility.MY_PERMISSIONS_REQUEST_PERMISSIONS:
                 try {
@@ -330,8 +311,8 @@ public class PhotoUpload extends AppCompatActivity {
             Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                 intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                File f=getOutputMediaFile(MEDIA_TYPE_IMAGE);
-                fileUri=Uri.fromFile(f);
+                File f = getOutputMediaFile(MEDIA_TYPE_IMAGE);
+                fileUri = Uri.fromFile(f);
                 Uri contentUri = FileProvider.getUriForFile(PhotoUpload.this, BuildConfig.APPLICATION_ID + ".provider", f);
                 intent.putExtra(MediaStore.EXTRA_OUTPUT, contentUri);
             } else {
@@ -456,23 +437,40 @@ public class PhotoUpload extends AppCompatActivity {
 
     public void onClickUpload(View view) {
         //if (AllEventUtilitys.isNetworkAvailable(PhotoUpload.this)) {
-            if (mSelectedImages.size() != 0) {
+        if (mSelectedImages.size() != 0) {
+            NotificationChannel notificationChannel = null;
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                NotificationManager notificationManager =
+                        (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
-                mNotifyManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-                mBuilder = new NotificationCompat.Builder(PhotoUpload.this);
-                mBuilder.setContentTitle("Uploading photos").setOngoing(true)
-                        .setContentText("Photo upload in progress.. (0 of " + (mSelectedImages.size() + ")"))
-                        .setSmallIcon(R.drawable.ic_event_photo_upload);
-
-                //inform to listner start upload pics
-                CallUploadListner();
-                Toast.makeText(PhotoUpload.this,
-                        "Uploading started...", Toast.LENGTH_SHORT)
-                        .show();
-                PhotoUpload.this.finish();
+                String channelId = "JACK_APP";
+                CharSequence channelName = "Jack APP";
+                int importance = NotificationManager.IMPORTANCE_HIGH;
+                notificationChannel = new NotificationChannel(channelId, channelName, importance);
+                notificationChannel.enableLights(true);
+                notificationChannel.setLightColor(Color.RED);
+                notificationChannel.enableVibration(true);
+                notificationChannel.setVibrationPattern(new long[]{100, 200, 300, 400, 500, 400, 300, 200, 400});
+                notificationManager.createNotificationChannel(notificationChannel);
+                mBuilder = new NotificationCompat.Builder(PhotoUpload.this, "JACK_APP");
             } else {
-                PhotoUpload.this.finish();
+                mBuilder = new NotificationCompat.Builder(PhotoUpload.this);
             }
+
+            mNotifyManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+            mBuilder.setContentTitle("Uploading photos").setOngoing(true)
+                    .setContentText("Photo upload in progress.. (0 of " + (mSelectedImages.size() + ")"))
+                    .setSmallIcon(R.drawable.ic_event_photo_upload);
+
+            //inform to listner start upload pics
+            CallUploadListner();
+            Toast.makeText(PhotoUpload.this,
+                    "Uploading started...", Toast.LENGTH_SHORT)
+                    .show();
+            PhotoUpload.this.finish();
+        } else {
+            PhotoUpload.this.finish();
+        }
 
         //}
     }
