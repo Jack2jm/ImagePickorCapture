@@ -14,22 +14,24 @@ import java.nio.charset.Charset;
 
 public class CustomMultiPartEntity extends MultipartEntity {
 
-    private final ProgressListener listener;
+    private ProgressListener listener;
 
     public CustomMultiPartEntity(final ProgressListener listener) {
         super();
         this.listener = listener;
     }
 
-    public CustomMultiPartEntity(final HttpMultipartMode mode, final ProgressListener listener) {
+    public CustomMultiPartEntity(final HttpMultipartMode mode) {
         super(mode);
-        this.listener = listener;
     }
 
     public CustomMultiPartEntity(HttpMultipartMode mode, final String boundary,
-                                 final Charset charset, final ProgressListener listener) {
+                                 final Charset charset) {
         super(mode, boundary, charset);
-        this.listener = listener;
+    }
+
+    public void setProgressListner(ProgressListener listner) {
+        this.listener = listner;
     }
 
     @Override

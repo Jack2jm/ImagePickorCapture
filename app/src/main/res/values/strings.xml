@@ -3,4 +3,9 @@
     <string name="imagedesc">null</string>
     <string name="photo_title_optional">Photo title (optional)</string>
     <string name="limit_exceeded_m">"Can select a maximum of %d images"</string>
+
+    <string name="btnTakePicture">Capture Image</string>
+    <string name="btnRecordVideo">Record Video</string>
+    <string name="or">(or)</string>
+    <string name="btnUploadToServer">Upload to Server</string>
 </resources>

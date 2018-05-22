@@ -170,7 +170,13 @@ public class PhotoUpload extends AppCompatActivity {
 
             @Override
             public void onUploadProgressChange(int percentage) {
-
+                try {
+                    mBuilder.setProgress(100, percentage, false);
+                    // Displays the progress bar for the first time.
+                    mNotifyManager.notify(0, mBuilder.build());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
 
             @Override
@@ -435,10 +441,19 @@ public class PhotoUpload extends AppCompatActivity {
         gridView.setAdapter(null);
     }
 
+    private void launchUploadActivity(boolean isImage, String path) {
+        Intent i = new Intent(PhotoUpload.this, UploadActivity.class);
+        i.putExtra("filePath", path);
+        i.putExtra("isImage", isImage);
+        startActivity(i);
+    }
+
     public void onClickUpload(View view) {
         //if (AllEventUtilitys.isNetworkAvailable(PhotoUpload.this)) {
         if (mSelectedImages.size() != 0) {
-            NotificationChannel notificationChannel = null;
+            launchUploadActivity(true, mSelectedImages.get(0).path);
+            this.finish();
+            /*NotificationChannel notificationChannel = null;
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
                 NotificationManager notificationManager =
                         (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
@@ -452,7 +467,7 @@ public class PhotoUpload extends AppCompatActivity {
                 notificationChannel.enableVibration(true);
                 notificationChannel.setVibrationPattern(new long[]{100, 200, 300, 400, 500, 400, 300, 200, 400});
                 notificationManager.createNotificationChannel(notificationChannel);
-                mBuilder = new NotificationCompat.Builder(PhotoUpload.this, "JACK_APP");
+                mBuilder = new NotificationCompat.Builder(PhotoUpload.this, channelId);
             } else {
                 mBuilder = new NotificationCompat.Builder(PhotoUpload.this);
             }
@@ -467,7 +482,7 @@ public class PhotoUpload extends AppCompatActivity {
             Toast.makeText(PhotoUpload.this,
                     "Uploading started...", Toast.LENGTH_SHORT)
                     .show();
-            PhotoUpload.this.finish();
+            PhotoUpload.this.finish();*/
         } else {
             PhotoUpload.this.finish();
         }

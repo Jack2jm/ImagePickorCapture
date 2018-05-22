@@ -109,11 +109,14 @@ public class PhotoUploadingTaskNew {
                 HttpContext localContext = new BasicHttpContext();
                 HttpPost httpPost = new HttpPost(upload_url);
                 try {
-                    CustomMultiPartEntity entity = new CustomMultiPartEntity(HttpMultipartMode.BROWSER_COMPATIBLE, null, Charset.forName("UTF-8"), new CustomMultiPartEntity.ProgressListener() {
+                    final CustomMultiPartEntity entity = new CustomMultiPartEntity(HttpMultipartMode.BROWSER_COMPATIBLE, null, Charset.forName("UTF-8"));
+
+                    entity.setProgressListner(new CustomMultiPartEntity.ProgressListener() {
                         @Override
                         public void transferred(long num) {
                             // update the progress bar or whatever else you might want to do
-                            System.out.println("============== ");
+                            System.out.println("==============uploaded size " + ((int) ((num / (float) entity.getContentLength()) * 100)) + " " + entity.getContentLength());
+                            uploadCallBack.onUploadProgressChange(((int) ((num / (float) entity.getContentLength()) * 100)));
                         }
                     });
                     /*MultipartEntity entity = new MultipartEntity(
