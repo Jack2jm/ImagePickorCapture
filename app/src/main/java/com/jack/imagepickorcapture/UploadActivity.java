@@ -30,6 +30,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.MediaController;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -40,67 +41,68 @@ import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.request.RequestOptions;
 
 public class UploadActivity extends Activity {
-	// LogCat tag
-	private static final String TAG = MainActivity.class.getSimpleName();
+    // LogCat tag
+    private static final String TAG = MainActivity.class.getSimpleName();
 
-	private ProgressBar progressBar;
-	private String filePath = null;
-	private TextView txtPercentage;
-	private ImageView imgPreview;
-	private VideoView vidPreview;
-	private Button btnUpload;
-	long totalSize = 0;
+    private ProgressBar progressBar;
+    private String filePath = null;
+    private TextView txtPercentage;
+    private ImageView imgPreview;
+    private VideoView vidPreview;
+    private Button btnUpload;
+    long totalSize = 0;
 
-	@Override
-	protected void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
-		setContentView(R.layout.activity_upload);
-		txtPercentage = (TextView) findViewById(R.id.txtPercentage);
-		btnUpload = (Button) findViewById(R.id.btnUpload);
-		progressBar = (ProgressBar) findViewById(R.id.progressBar);
-		imgPreview = (ImageView) findViewById(R.id.imgPreview);
-		vidPreview = (VideoView) findViewById(R.id.videoPreview);
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_upload);
+        txtPercentage = (TextView) findViewById(R.id.txtPercentage);
+        btnUpload = (Button) findViewById(R.id.btnUpload);
+        progressBar = (ProgressBar) findViewById(R.id.progressBar);
+        imgPreview = (ImageView) findViewById(R.id.imgPreview);
+        vidPreview = (VideoView) findViewById(R.id.videoPreview);
 
-		// Receiving the data from previous activity
-		Intent i = getIntent();
+        // Receiving the data from previous activity
+        Intent i = getIntent();
 
-		// image or video path that is captured in previous activity
-		filePath = i.getStringExtra("filePath");
+        // image or video path that is captured in previous activity
+        filePath = i.getStringExtra("filePath");
+        System.out.println("============ file path is " + Uri.parse(filePath));
+        // boolean flag to identify the media type, image or video
+        boolean isImage = i.getBooleanExtra("isImage", true);
 
-		// boolean flag to identify the media type, image or video
-		boolean isImage = i.getBooleanExtra("isImage", true);
+        if (filePath != null) {
+            // Displaying the image or video on the screen
+            previewMedia(isImage);
 
-		if (filePath != null) {
-			// Displaying the image or video on the screen
-			previewMedia(isImage);
-		} else {
-			Toast.makeText(getApplicationContext(),
-					"Sorry, file path is missing!", Toast.LENGTH_LONG).show();
-		}
+        } else {
+            Toast.makeText(getApplicationContext(),
+                    "Sorry, file path is missing!", Toast.LENGTH_LONG).show();
+        }
 
-		btnUpload.setOnClickListener(new View.OnClickListener() {
+        btnUpload.setOnClickListener(new View.OnClickListener() {
 
-			@Override
-			public void onClick(View v) {
-				// uploading the file to server
-				new UploadFileToServer().execute();
-			}
-		});
+            @Override
+            public void onClick(View v) {
+                // uploading the file to server
+                new UploadFileToServer().execute();
+            }
+        });
 
-	}
+    }
 
-	/**
-	 * Displaying captured image/video on the screen
-	 * */
-	private void previewMedia(boolean isImage) {
-		// Checking whether captured media is image or video
-		if (isImage) {
-			imgPreview.setVisibility(View.VISIBLE);
-			vidPreview.setVisibility(View.GONE);
-			File f = new File(filePath);
+    /**
+     * Displaying captured image/video on the screen
+     */
+    private void previewMedia(boolean isImage) {
+        // Checking whether captured media is image or video
+        if (isImage) {
+            imgPreview.setVisibility(View.VISIBLE);
+            vidPreview.setVisibility(View.GONE);
+            File f = new File(filePath);
 
-			Uri contentUri = FileProvider.getUriForFile(UploadActivity.this, BuildConfig.APPLICATION_ID + ".provider", f);
-            System.out.println("========== "+filePath+" "+contentUri);
+            Uri contentUri = FileProvider.getUriForFile(UploadActivity.this, BuildConfig.APPLICATION_ID + ".provider", f);
+            System.out.println("========== " + filePath + " " + contentUri);
 
             Glide.with(UploadActivity.this)
                     .load(f)
@@ -108,8 +110,8 @@ public class UploadActivity extends Activity {
                             .centerCrop()
                             .diskCacheStrategy(DiskCacheStrategy.ALL))
                     .into(imgPreview);
-			/*// bimatp factory
-			BitmapFactory.Options options = new BitmapFactory.Options();
+            /*// bimatp factory
+            BitmapFactory.Options options = new BitmapFactory.Options();
 
 			// down sizing image as it throws OutOfMemory Exception for larger
 			// images
@@ -118,122 +120,122 @@ public class UploadActivity extends Activity {
 			final Bitmap bitmap = BitmapFactory.decodeFile(filePath, options);
 
 			imgPreview.setImageBitmap(bitmap);*/
-		} else {
-			imgPreview.setVisibility(View.GONE);
-			vidPreview.setVisibility(View.VISIBLE);
-			vidPreview.setVideoPath(filePath);
-			// start playing
-			vidPreview.start();
-		}
-	}
+        } else {
+            imgPreview.setVisibility(View.GONE);
+            vidPreview.setVisibility(View.VISIBLE);
+            vidPreview.setVideoURI(Uri.parse(filePath));
+            // start playing
+            vidPreview.start();
+        }
+    }
 
-	/**
-	 * Uploading the file to server
-	 * */
-	private class UploadFileToServer extends AsyncTask<Void, Integer, String> {
-		@Override
-		protected void onPreExecute() {
-			// setting progress bar to zero
-			progressBar.setProgress(0);
-			super.onPreExecute();
-		}
+    /**
+     * Uploading the file to server
+     */
+    private class UploadFileToServer extends AsyncTask<Void, Integer, String> {
+        @Override
+        protected void onPreExecute() {
+            // setting progress bar to zero
+            progressBar.setProgress(0);
+            super.onPreExecute();
+        }
 
-		@Override
-		protected void onProgressUpdate(Integer... progress) {
-			// Making progress bar visible
-			progressBar.setVisibility(View.VISIBLE);
+        @Override
+        protected void onProgressUpdate(Integer... progress) {
+            // Making progress bar visible
+            progressBar.setVisibility(View.VISIBLE);
 
-			// updating progress bar value
-			progressBar.setProgress(progress[0]);
+            // updating progress bar value
+            progressBar.setProgress(progress[0]);
 
-			// updating percentage value
-			txtPercentage.setText(String.format("%s%%", String.valueOf(progress[0])));
-		}
+            // updating percentage value
+            txtPercentage.setText(String.format("%s%%", String.valueOf(progress[0])));
+        }
 
-		@Override
-		protected String doInBackground(Void... params) {
-			return uploadFile();
-		}
+        @Override
+        protected String doInBackground(Void... params) {
+            return uploadFile();
+        }
 
-		@SuppressWarnings("deprecation")
-		private String uploadFile() {
-			String responseString = null;
+        @SuppressWarnings("deprecation")
+        private String uploadFile() {
+            String responseString = null;
 
-			HttpClient httpclient = new DefaultHttpClient();
-			HttpPost httppost = new HttpPost(Config.FILE_UPLOAD_URL);
+            HttpClient httpclient = new DefaultHttpClient();
+            HttpPost httppost = new HttpPost(Config.FILE_UPLOAD_URL);
 
-			try {
-				AndroidMultiPartEntity entity = new AndroidMultiPartEntity(
-						new AndroidMultiPartEntity.ProgressListener() {
+            try {
+                AndroidMultiPartEntity entity = new AndroidMultiPartEntity(
+                        new AndroidMultiPartEntity.ProgressListener() {
 
-							@Override
-							public void transferred(long num) {
-								publishProgress((int) ((num / (float) totalSize) * 100));
-							}
-						});
+                            @Override
+                            public void transferred(long num) {
+                                publishProgress((int) ((num / (float) totalSize) * 100));
+                            }
+                        });
 
-				File sourceFile = new File(filePath);
+                File sourceFile = new File(filePath);
 
-				// Adding file data to http body
-				entity.addPart("image", new FileBody(sourceFile));
+                // Adding file data to http body
+                entity.addPart("image", new FileBody(sourceFile));
 
-				// Extra parameters if you want to pass to server
-				entity.addPart("website",
-						new StringBody("www.androidhive.info"));
-				entity.addPart("email", new StringBody("abc@gmail.com"));
+                // Extra parameters if you want to pass to server
+                entity.addPart("website",
+                        new StringBody("www.androidhive.info"));
+                entity.addPart("email", new StringBody("abc@gmail.com"));
 
-				totalSize = entity.getContentLength();
-				httppost.setEntity(entity);
+                totalSize = entity.getContentLength();
+                httppost.setEntity(entity);
 
-				// Making server call
-				HttpResponse response = httpclient.execute(httppost);
-				HttpEntity r_entity = response.getEntity();
+                // Making server call
+                HttpResponse response = httpclient.execute(httppost);
+                HttpEntity r_entity = response.getEntity();
 
-				int statusCode = response.getStatusLine().getStatusCode();
-				if (statusCode == 200) {
-					// Server response
-					responseString = EntityUtils.toString(r_entity);
-				} else {
-					responseString = "Error occurred! Http Status Code: "
-							+ statusCode;
-				}
+                int statusCode = response.getStatusLine().getStatusCode();
+                if (statusCode == 200) {
+                    // Server response
+                    responseString = EntityUtils.toString(r_entity);
+                } else {
+                    responseString = "Error occurred! Http Status Code: "
+                            + statusCode;
+                }
 
-			} catch (ClientProtocolException e) {
-				responseString = e.toString();
-			} catch (IOException e) {
-				responseString = e.toString();
-			}
+            } catch (ClientProtocolException e) {
+                responseString = e.toString();
+            } catch (IOException e) {
+                responseString = e.toString();
+            }
 
-			return responseString;
+            return responseString;
 
-		}
+        }
 
-		@Override
-		protected void onPostExecute(String result) {
-			Log.e(TAG, "Response from server: " + result);
+        @Override
+        protected void onPostExecute(String result) {
+            Log.e(TAG, "Response from server: " + result);
 
-			// showing the server response in an alert dialog
-			showAlert(result);
+            // showing the server response in an alert dialog
+            showAlert(result);
 
-			super.onPostExecute(result);
-		}
+            super.onPostExecute(result);
+        }
 
-	}
+    }
 
-	/**
-	 * Method to show alert dialog
-	 * */
-	private void showAlert(String message) {
-		AlertDialog.Builder builder = new AlertDialog.Builder(this);
-		builder.setMessage(message).setTitle("Response from Servers")
-				.setCancelable(false)
-				.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-					public void onClick(DialogInterface dialog, int id) {
-						// do nothing
-					}
-				});
-		AlertDialog alert = builder.create();
-		alert.show();
-	}
+    /**
+     * Method to show alert dialog
+     */
+    private void showAlert(String message) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage(message).setTitle("Response from Servers")
+                .setCancelable(false)
+                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        // do nothing
+                    }
+                });
+        AlertDialog alert = builder.create();
+        alert.show();
+    }
 
 }

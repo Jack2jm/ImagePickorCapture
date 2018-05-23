@@ -99,7 +99,7 @@ public class PhotoUploadingTaskNew {
 
         @Override
         protected String doInBackground(String... params) {
-            String upload_url = "https://allevents.in/api/index.php/users/social/post_image";
+            String upload_url = "";
             // HttpPost httpPost = new
             // HttpPost(CONSTANT.URLNEW+"users/social/postsasad_image");
 
