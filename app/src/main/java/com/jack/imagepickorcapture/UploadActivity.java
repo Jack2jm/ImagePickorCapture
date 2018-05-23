@@ -14,14 +14,11 @@ import org.apache.http.entity.mime.content.StringBody;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.util.EntityUtils;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Color;
-import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -49,25 +46,24 @@ public class UploadActivity extends Activity {
     private TextView txtPercentage;
     private ImageView imgPreview;
     private VideoView vidPreview;
-    private Button btnUpload;
     long totalSize = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_upload);
-        txtPercentage = (TextView) findViewById(R.id.txtPercentage);
-        btnUpload = (Button) findViewById(R.id.btnUpload);
-        progressBar = (ProgressBar) findViewById(R.id.progressBar);
-        imgPreview = (ImageView) findViewById(R.id.imgPreview);
-        vidPreview = (VideoView) findViewById(R.id.videoPreview);
-
+        txtPercentage = findViewById(R.id.txtPercentage);
+        Button btnUpload = findViewById(R.id.btnUpload);
+        progressBar = findViewById(R.id.progressBar);
+        imgPreview =  findViewById(R.id.imgPreview);
+        vidPreview = findViewById(R.id.videoPreview);
+        vidPreview.setMediaController(new MediaController(UploadActivity.this));
         // Receiving the data from previous activity
         Intent i = getIntent();
 
         // image or video path that is captured in previous activity
         filePath = i.getStringExtra("filePath");
-        System.out.println("============ file path is " + Uri.parse(filePath));
+
         // boolean flag to identify the media type, image or video
         boolean isImage = i.getBooleanExtra("isImage", true);
 
@@ -132,6 +128,7 @@ public class UploadActivity extends Activity {
     /**
      * Uploading the file to server
      */
+    @SuppressLint("StaticFieldLeak")
     private class UploadFileToServer extends AsyncTask<Void, Integer, String> {
         @Override
         protected void onPreExecute() {
@@ -159,7 +156,7 @@ public class UploadActivity extends Activity {
 
         @SuppressWarnings("deprecation")
         private String uploadFile() {
-            String responseString = null;
+            String responseString;
 
             HttpClient httpclient = new DefaultHttpClient();
             HttpPost httppost = new HttpPost(Config.FILE_UPLOAD_URL);

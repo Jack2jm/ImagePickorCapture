@@ -5,11 +5,8 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.Color;
-import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -37,17 +34,13 @@ public class MainActivity extends AppCompatActivity {
 
     private Uri fileUri; // file url to store image/video
 
-    private Button btnCapturePicture;
-    private Button btncaptureVideo;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-
-        btnCapturePicture = (Button) findViewById(R.id.btnCapturePicture);
-        btncaptureVideo = findViewById(R.id.btnCaptureVideo);
+        Button btnCapturePicture = findViewById(R.id.btnCapturePicture);
+        Button btncaptureVideo = findViewById(R.id.btnCaptureVideo);
 
         btnCapturePicture.setOnClickListener(new View.OnClickListener() {
 
@@ -67,6 +60,7 @@ public class MainActivity extends AppCompatActivity {
                         takeVideoIntent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
                         File f = getOutputMediaFile(MEDIA_TYPE_VIDEO);
                         fileUri = Uri.fromFile(f);
+                        assert f != null;
                         Uri contentUri = FileProvider.getUriForFile(MainActivity.this, BuildConfig.APPLICATION_ID + ".provider", f);
                         takeVideoIntent.putExtra(MediaStore.EXTRA_OUTPUT, contentUri);
                     } else {
@@ -100,14 +94,10 @@ public class MainActivity extends AppCompatActivity {
      * Checking device has camera hardware or not
      */
     private boolean isDeviceSupportCamera() {
-        if (getApplicationContext().getPackageManager().hasSystemFeature(
-                PackageManager.FEATURE_CAMERA)) {
-            // this device has a camera
-            return true;
-        } else {
-            // no camera on this device
-            return false;
-        }
+        // this device has a camera
+        // no camera on this device
+        return getApplicationContext().getPackageManager().hasSystemFeature(
+                PackageManager.FEATURE_CAMERA);
     }
 
     /**
@@ -120,6 +110,7 @@ public class MainActivity extends AppCompatActivity {
             intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
             File f = getOutputMediaFile(MEDIA_TYPE_IMAGE);
             fileUri = Uri.fromFile(f);
+            assert f != null;
             Uri contentUri = FileProvider.getUriForFile(MainActivity.this, BuildConfig.APPLICATION_ID + ".provider", f);
             intent.putExtra(MediaStore.EXTRA_OUTPUT, contentUri);
         } else {
@@ -179,15 +170,10 @@ public class MainActivity extends AppCompatActivity {
                         .show();
             }
 
-        }
-
-        if (requestCode == REQUEST_VIDEO_CAPTURE && resultCode == RESULT_OK) {
+        } else if (requestCode == REQUEST_VIDEO_CAPTURE && resultCode == RESULT_OK) {
             try {
                 //Uri videoUri = data.getData();
-                Intent i = new Intent(MainActivity.this, UploadActivity.class);
-                i.putExtra("filePath", fileUri.getPath());
-                i.putExtra("isImage", false);
-                startActivity(i);
+                launchUploadActivity(false);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -201,7 +187,7 @@ public class MainActivity extends AppCompatActivity {
         startActivity(i);
     }
 
-    /**
+    /*
      * ------------ Helper Methods ---------------------- 
      * */
 
@@ -242,7 +228,7 @@ public class MainActivity extends AppCompatActivity {
         } else if (type == MEDIA_TYPE_VIDEO) {
             mediaFile = new File(mediaStorageDir.getPath() + File.separator
                     + "VID_" + timeStamp + ".mp4");
-        }else {
+        } else {
             return null;
         }
 
