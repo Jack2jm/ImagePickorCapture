@@ -43,7 +43,6 @@ import com.jack.imagepickorcapture.adapter.PhotoUploadGalleryAdapter;
 import com.jack.imagepickorcapture.adapter.PhotoUploadViewPagerAdapter;
 import com.jack.imagepickorcapture.helper.MarshmellowUtility;
 import com.jack.imagepickorcapture.helper.PhotoUploadingTaskNew;
-import com.jack.imagepickorcapture.helper.PreferenceConnector;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
