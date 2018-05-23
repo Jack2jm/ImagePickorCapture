@@ -58,6 +58,7 @@ public class UploadActivity extends Activity {
         imgPreview =  findViewById(R.id.imgPreview);
         vidPreview = findViewById(R.id.videoPreview);
         vidPreview.setMediaController(new MediaController(UploadActivity.this));
+
         // Receiving the data from previous activity
         Intent i = getIntent();
 
@@ -70,7 +71,6 @@ public class UploadActivity extends Activity {
         if (filePath != null) {
             // Displaying the image or video on the screen
             previewMedia(isImage);
-
         } else {
             Toast.makeText(getApplicationContext(),
                     "Sorry, file path is missing!", Toast.LENGTH_LONG).show();
@@ -177,8 +177,6 @@ public class UploadActivity extends Activity {
                 entity.addPart("image", new FileBody(sourceFile));
 
                 // Extra parameters if you want to pass to server
-                entity.addPart("website",
-                        new StringBody("www.androidhive.info"));
                 entity.addPart("email", new StringBody("abc@gmail.com"));
 
                 totalSize = entity.getContentLength();
